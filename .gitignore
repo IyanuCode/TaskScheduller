@@ -1,0 +1,21 @@
+# Ignore build output
+bin/
+obj/
+
+# Ignore Visual Studio Code settings
+.vscode/
+
+# Ignore user-specific files
+*.user
+*.suo
+
+# Ignore backup and temporary files
+*.log
+*.tmp
+
+# Ignore compiled executables
+*.exe
+*.dll
+
+# Ignore specific files you don't want in the repository
+
