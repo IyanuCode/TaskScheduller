@@ -32,7 +32,7 @@ namespace TaskScheduller
         {
             MainMenu();
         }
-
+/* ----------------------------------------------------Main Menu----------------------------------------------*/
         private static void MainMenu()
         {
             while (true)
@@ -40,7 +40,8 @@ namespace TaskScheduller
                 Console.WriteLine("\nWelcome To Task Scheduller App");
                 Console.WriteLine("To Add Task, Press 1");
                 Console.WriteLine("To View Task, Press 2");
-                Console.WriteLine("To Change Task Status, Press 3");
+                Console.WriteLine("To Update Task, Press 3");
+                Console.WriteLine("To Change Task Status, Press 4");
                 Console.WriteLine("To Exit, Press 0");
                 Console.Write("Enter Your Choice: ");
 
@@ -64,6 +65,9 @@ namespace TaskScheduller
                         case "3":
                             UpdateTask();
                             break;
+                        case "4":
+                            ChangeTaskStatus();
+                            break;
                         case "0":
                             Console.WriteLine("Exiting the application...");
                             return;
@@ -75,7 +79,11 @@ namespace TaskScheduller
                 }
             }
         }
-
+/* ----------------------------------------------------Main Menu Ends---------------------------------------------*/
+       
+       
+       
+/* ----------------------------------------------------Add Task----------------------------------------------*/       
         private static void AddTask()
         {
             Task task = new Task();
@@ -124,7 +132,11 @@ namespace TaskScheduller
             WriteToFile();
         }
 
+/* -------------------------------------------------Enf of Add Task----------------------------------------------*/       
 
+
+
+/* ----------------------------------------------------view Task----------------------------------------------*/       
 
         private static void ViewTask()
         {
@@ -152,6 +164,7 @@ namespace TaskScheduller
                 Console.WriteLine($"{task.Name,-22}|{task.Description,-37}|{task.DueDate,-15:yyyy-MM-dd}|{task.DueDate,-15}|{task.Status,-12}");
             }
         }
+/* ----------------------------------------------------view Task Ends----------------------------------------------*/       
 
         private static void WriteToFile()
         {
@@ -176,9 +189,13 @@ namespace TaskScheduller
             }
         }
 
+
+
+
+
+/* ----------------------------------------------------Load From File----------------------------------------------*/      
         private static void LoadFromFile()
         {
-            tasks.Clear();
             if (!File.Exists(filePath))
             {
                 Console.WriteLine("File doesn't exist.");
@@ -216,22 +233,24 @@ namespace TaskScheduller
 
             Console.WriteLine(" Tasks loaded successfully.");
         }
+/* ----------------------------------------------------Load From File Ends----------------------------------------------*/      
+
+
+
+/* ----------------------------------------------------Update Task----------------------------------------------*/      
 private static void UpdateTask()
 {
     Console.Clear();
     Console.Write("Enter the name of Task you want to search for: ");
     string? searchName = Console.ReadLine()?.Trim();
 
-    if (string.IsNullOrWhiteSpace(searchName) || searchName.Length < 2)
+    if (string.IsNullOrWhiteSpace(searchName) || searchName.Length < 1)
     {
         Console.WriteLine("Enter a valid search name");
-        return;
     }
 
-    var taskFound = tasks
-        .Where(p => p.Name != null && p.Name.Contains(searchName, StringComparison.OrdinalIgnoreCase))
-        .ToList();
-
+    var taskFound = tasks.Where(p => p.Name != null && p.Name.Contains(searchName, StringComparison.OrdinalIgnoreCase)).ToList();
+    Console.WriteLine($"task found just to see it in updatetask: {taskFound.Count} results");//(needs to be deleted)
     if (taskFound.Count > 0)
     {
         Console.WriteLine("\nSearch Results:\n");
@@ -246,45 +265,87 @@ private static void UpdateTask()
             Console.WriteLine($"   Status: {(task.IsCompleted ? "[x] Completed" : "[ ] Pending")}\n");
         }
 
-        Console.Write("Enter the number of the task you want to update: ");
-        if (int.TryParse(Console.ReadLine(), out int choice) && choice >= 1 && choice <= taskFound.Count)
-        {
-            var selectedTask = taskFound[choice - 1];
+         Console.Write("Enter the number of the task you want to update: ");
+         if (int.TryParse(Console.ReadLine(), out int choice) && choice >= 1 && choice <= taskFound.Count)
+         {
+             var selectedTask = taskFound[choice - 1];
 
-            Console.WriteLine("\nPress [Spacebar] to toggle completion status.");
-            Console.WriteLine("Or press [Enter] to leave it unchanged.");
-            ConsoleKeyInfo key = Console.ReadKey(true);
-            if (key.Key == ConsoleKey.Spacebar)
-            {
-                selectedTask.IsCompleted = !selectedTask.IsCompleted;
-                Console.WriteLine($"\nStatus updated: {(selectedTask.IsCompleted ? "[x] Completed" : "[ ] Pending")}");
-            }
+             Console.Write($"\nNew name (or press Enter to keep '{selectedTask.Name}'): ");
+             string newName = Console.ReadLine();
+             if (!string.IsNullOrWhiteSpace(newName)) selectedTask.Name = newName;
 
-            Console.Write($"\nNew name (or press Enter to keep '{selectedTask.Name}'): ");
-            string newName = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(newName)) selectedTask.Name = newName;
+             Console.Write("New description (or press Enter to keep current): ");
+             string newDesc = Console.ReadLine();
+             if (!string.IsNullOrWhiteSpace(newDesc)) selectedTask.Description = newDesc;
 
-            Console.Write("New description (or press Enter to keep current): ");
-            string newDesc = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(newDesc)) selectedTask.Description = newDesc;
+             Console.Write("New due date (yyyy-MM-dd) or press Enter to keep: ");
+             string newDue = Console.ReadLine();
+             if (DateTime.TryParse(newDue, out DateTime newDate)) selectedTask.DueDate = newDate;
 
-            Console.Write("New due date (yyyy-MM-dd) or press Enter to keep: ");
-            string newDue = Console.ReadLine();
-            if (DateTime.TryParse(newDue, out DateTime newDate)) selectedTask.DueDate = newDate;
-
-            WriteToFile();
-            Console.WriteLine("\n Task updated successfully!");
-        }
-        else
-        {
-            Console.WriteLine("Invalid selection.");
-        }
+             WriteToFile();
+             Console.WriteLine("\n Task updated successfully!");
+         }
+         else
+         {
+             Console.WriteLine("Invalid selection.");
+         }
     }
     else
     {
         Console.WriteLine("No task found matching that name.");
     }
 }
+
+/*---------------------------------------------------Change Task Status ---------------------------------------*/
+    private static void ChangeTaskStatus(){
+    Console.Clear();
+    Console.Write("Enter the name of the Task: ");
+    string? searchName = Console.ReadLine()?.Trim();
+
+    if (string.IsNullOrWhiteSpace(searchName) || searchName.Length < 1)
+    {
+        Console.WriteLine("Enter a valid search name");
+    }
+
+        var taskFound = tasks.Where(p => p.Name != null && p.Name.Contains(searchName, StringComparison.OrdinalIgnoreCase)).ToList();
+        Console.WriteLine($"the task found list: {taskFound.Count} results");//just to see the list(need to be removed)
+        if (taskFound.Count > 0)
+        {
+            Console.WriteLine("\nSearch Results:\n");
+
+            int counter = 1;
+            foreach (var task in taskFound)
+            {
+                Console.WriteLine($"{counter++}. Name: {task.Name}");
+                Console.WriteLine($"   Description: {task.Description}");
+                Console.WriteLine($"   Created: {task.CreatedDate:yyyy-MM-dd}");
+                Console.WriteLine($"   Due: {task.DueDate:yyyy-MM-dd}");
+                Console.WriteLine($"   Status: {(task.IsCompleted ? "[x] Completed" : "[ ] Pending")}\n");
+            }
+
+            Console.Write("Enter the serial number of the task you want to Change its status: ");
+            if (int.TryParse(Console.ReadLine(), out int choice) && choice >= 1 && choice <= taskFound.Count)
+            {
+                var selectedTask = taskFound[choice - 1];
+
+                Console.WriteLine("\nPress [Spacebar] to toggle completion status.");
+                Console.WriteLine("Or press [Enter] to leave it unchanged.");
+                ConsoleKeyInfo key = Console.ReadKey(true);
+                if (key.Key == ConsoleKey.Spacebar)
+                {
+                    selectedTask.IsCompleted = !selectedTask.IsCompleted;
+                    Console.WriteLine($"\nStatus updated: {(selectedTask.IsCompleted ? "[x] Completed" : "[ ] Pending")}");
+                }
+                WriteToFile();
+                Console.WriteLine("Task Status updated Successfully");
+            }
+            else{
+                Console.WriteLine("Task not updated successfully");
+            }
+        }
+        else{
+            Console.WriteLine("No Task Found ");
+        }
 
 
 
@@ -298,5 +359,6 @@ private static void UpdateTask()
         //         return task.IsCompleted ? "[x]" : "[ ]";
         //     }
     }
+}
 }
 
