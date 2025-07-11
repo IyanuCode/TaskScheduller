@@ -11,354 +11,405 @@ namespace TaskScheduller
         {
             public string? Name { get; set; }
             public string? Description { get; set; }
-            public DateTime CreatedDate { get; set; }
-            public DateTime DueDate { get; set; }
+            public DateTime DateCreated { get; set; }
+            public DateTime Deadline { get; set; }
             public bool IsCompleted { get; set; }
-
-            public string Status
-            {
-                get
-                {
-                    return IsCompleted ? "Completed" : "Pending";
-                }
-            }
         }
-
-
         private static List<Task> tasks = new List<Task>();
         private const string filePath = "task.txt";
 
         public static void Main(string[] args)
         {
+            LoadFromFile(); //i think calling it here once and available to all other method is better for the memory than calling it in each method
+
             MainMenu();
         }
-/* ----------------------------------------------------Main Menu----------------------------------------------*/
+
+        /*------------------- Main Menu Method------------I*/
         private static void MainMenu()
         {
             while (true)
             {
-                Console.WriteLine("\nWelcome To Task Scheduller App");
-                Console.WriteLine("To Add Task, Press 1");
-                Console.WriteLine("To View Task, Press 2");
-                Console.WriteLine("To Update Task, Press 3");
+                Console.Clear();
+                Console.WriteLine("=== TASK SCHEDULER ===");
+                Console.WriteLine("To Add New Task, Press 1");
+                Console.WriteLine("To View Pending Task, Press 2");
+                Console.WriteLine("To View Completed Task, Press 3");
                 Console.WriteLine("To Change Task Status, Press 4");
+                Console.WriteLine("To Update Task, Press 5");
                 Console.WriteLine("To Exit, Press 0");
-                Console.Write("Enter Your Choice: ");
+                string? choice = Console.ReadLine();
 
-                string? input = Console.ReadLine().Trim();
-
-                if (string.IsNullOrEmpty(input))
+                switch (choice)
                 {
-                    Console.WriteLine("Input cannot be empty.");
+                    case "1":
+                        AddTask();
+                        break;
+                    case "2":
+                        ViewPendingTask();
+                        break;
+                    case "3":
+                        ViewCompletedTask();
+                        break;
+                    case "4":
+                        ChangeTaskStatus();
+                        break;
+                    case "5":
+                        UpdateTask();
+                        break;
+                    case "0":
+                        return;
+                    default:
+                        Console.WriteLine("Invalid choice, Press Enter to try again");
+                        Console.ReadLine();
+                        break;
+                }
+            }
+        }
+        /*---------------------- Main Menu Method Ends----------------I*/
+
+
+
+
+        /*---------------------- Add Task Method-------------------I*/
+        private static void AddTask()
+        {
+            Console.Clear();
+            Console.WriteLine("=== ADD NEW TASK ===");
+
+            //Task Name input with validation untill user enters the right name
+            string? nameFromInput;
+            do
+            {
+                Console.Write("Enter task name: ");
+                nameFromInput = Console.ReadLine();
+
+                if (string.IsNullOrWhiteSpace(nameFromInput) || nameFromInput.Any(Char.IsDigit))
+                {
+                    Console.WriteLine("Name cant be empty and please enter a name without number");
+                }
+            } while (string.IsNullOrWhiteSpace(nameFromInput) || nameFromInput.Any(Char.IsDigit));
+
+
+            //Description
+            string? description;
+            do
+            {
+                Console.Write("Enter task description (min 10 characters): ");
+                description = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(description) || description.Length < 10)
+                {
+                    Console.WriteLine("Description is too short! Try Again!!!");
+                }
+            } while (string.IsNullOrWhiteSpace(description) || description.Length < 10);
+
+
+            //Date Deadline input
+            DateTime deadline;
+
+            while (true)
+            {
+                Console.Write("Enter deadline (yyyy-mm-dd): ");
+                string? dateInput = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(dateInput) && DateTime.TryParse(dateInput, out deadline) && deadline >= DateTime.Today)
+                {
+                    break;
                 }
                 else
                 {
-
-                    switch (input)
-                    {
-                        case "1":
-                            AddTask();
-                            break;
-                        case "2":
-                            ViewTask();
-                            break;
-                        case "3":
-                            UpdateTask();
-                            break;
-                        case "4":
-                            ChangeTaskStatus();
-                            break;
-                        case "0":
-                            Console.WriteLine("Exiting the application...");
-                            return;
-                        default:
-                            Console.WriteLine("Invalid input, please try again.");
-                            break;
-                    }
-
+                    Console.WriteLine("Invalid or Past Date");
                 }
             }
+
+            //storing each task
+            Task task = new Task
+            {
+                Name = nameFromInput,
+                Description = description,
+                Deadline = deadline,
+                DateCreated = DateTime.Now,
+                IsCompleted = false
+            };
+            tasks.Add(task);
+            SaveTask(tasks); //passing the full list to save task so it can be consistently saved
+            GoBackToMenu();
         }
-/* ----------------------------------------------------Main Menu Ends---------------------------------------------*/
-       
-       
-       
-/* ----------------------------------------------------Add Task----------------------------------------------*/       
-        private static void AddTask()
+        /*------------------- Add Task Ends------------I*/
+
+
+
+
+
+        /*------------------- Save Task Method------------I*/
+
+        private static void SaveTask(List<Task> tasks)
         {
-            Task task = new Task();
-
-            //Task Name
-            Console.Write("Enter Task Name:");
-            string? inputTaskName = Console.ReadLine().Trim();
-            if (!string.IsNullOrEmpty(inputTaskName))
-            {
-                task.Name = inputTaskName;
-            }
-            else
-            {
-                Console.WriteLine("Task name cannot be empty.");
-            }
-
-            //Task Description
-            Console.Write("Enter Task Description:");
-            string? inputDescription = Console.ReadLine().Trim();
-            if (!string.IsNullOrEmpty(inputDescription))
-            {
-                task.Description = inputDescription;
-            }
-            else
-            {
-                Console.WriteLine("Task Description cannot be empty.");
-            }
-
-            //Task Created Date
-            task.CreatedDate = DateTime.Now;
-
-            //Task Due Date
-            Console.Write("Enter Due Date in the format (yyyy-mm-dd):");
-            if (DateTime.TryParse(Console.ReadLine(), out DateTime dueDate))
-            {
-                task.DueDate = dueDate;
-                task.IsCompleted = false;
-                tasks.Add(task);
-                Console.WriteLine("Task added successfully!");
-            }
-            else
-            {
-                Console.WriteLine("Invalid date format.");
-            }
-
-            WriteToFile();
-        }
-
-/* -------------------------------------------------Enf of Add Task----------------------------------------------*/       
-
-
-
-/* ----------------------------------------------------view Task----------------------------------------------*/       
-
-        private static void ViewTask()
-        {
-            Console.Clear();
-            LoadFromFile();
-            Console.WriteLine("=== TASK LIST ===\n");
-
-            if (tasks.Count == 0)
-            {
-                Console.WriteLine("No tasks available.");
-                return;
-            }
-            else
-            {
-                Console.WriteLine($"{"NAME",-22}|{"DESCRIPTION",-37}|{"CREATED DATE",-15}|{"DUE DATE",-15}|{"STATUS",-12}");
-                Console.WriteLine(new string('-', 107));
-
-
-
-            }
-
-            foreach (var task in tasks)
-            {
-                if (task.Name.StartsWith("NAME", StringComparison.OrdinalIgnoreCase) || task.Name.StartsWith("-")) continue;
-                Console.WriteLine($"{task.Name,-22}|{task.Description,-37}|{task.DueDate,-15:yyyy-MM-dd}|{task.DueDate,-15}|{task.Status,-12}");
-            }
-        }
-/* ----------------------------------------------------view Task Ends----------------------------------------------*/       
-
-        private static void WriteToFile()
-        {
+            //Console.WriteLine("Inside SaveTask");
             try
             {
-                using (var writer = new System.IO.StreamWriter(filePath))
+                using (var writer = new StreamWriter("task.txt"))
                 {
                     writer.WriteLine($"{"NAME",-22}|{"DESCRIPTION",-37}|{"CREATED DATE",-15}|{"DUE DATE",-15}|{"COMPLETED",-12}");
                     writer.WriteLine(new string('-', 110));
 
                     foreach (var task in tasks)
                     {
-                        writer.WriteLine($"{task.Name,-22}|{task.Description,-37}|{task.CreatedDate,-15:yyyy-MM-dd}|{task.DueDate:yyyy-MM-dd,-15}|{task.Status,-12}");
+                        string desc = task.Description.Length > 35 ? task.Description.Substring(0, 34) + "..." : task.Description;
+                        string completedStatus = task.IsCompleted ? "Yes" : "No";
+
+                        writer.WriteLine($"{task.Name,-22}|{desc,-37}|{task.DateCreated:yyyy-MM-dd, -15}|{task.Deadline:yyyy-MM-dd, -15}|{completedStatus,-12} ");
+
                     }
                 }
-                Console.WriteLine("Task saved to file successfully.");
-
+                Console.WriteLine("Task saved to file successfully");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred while writing to the file: {ex.Message}");
+
+                Console.WriteLine($"An error occured while writing to the file: {ex.Message}");
             }
         }
 
 
+        /*------------------- Save Task End------------I*/
 
 
 
-/* ----------------------------------------------------Load From File----------------------------------------------*/      
+
+        /*------------------- LoadFromFile Method------------I*/
         private static void LoadFromFile()
         {
+            tasks.Clear();
+            
             if (!File.Exists(filePath))
             {
-                Console.WriteLine("File doesn't exist.");
+                Console.WriteLine("Task file not found therefore cannot be load from file.");
                 return;
             }
-
+        
             string[] lines = File.ReadAllLines(filePath);
 
 
-            foreach (string line in lines)
+            foreach (var line in lines)
             {
-                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("Name") || line.StartsWith("-"))
-                    continue;
+                if (string.IsNullOrWhiteSpace(line)) continue;
 
-                string[] parts = line.Trim().Split('|');
-
+                string[] parts = line.Split('|');
+                
                 if (parts.Length >= 5)
                 {
                     tasks.Add(new Task
                     {
                         Name = parts[0].Trim(),
                         Description = parts[1].Trim(),
-                        CreatedDate = DateTime.TryParse(parts[2], out DateTime created) ? created : DateTime.Now,
-                        DueDate = DateTime.TryParse(parts[3], out DateTime due) ? due : DateTime.Now,
-                        IsCompleted = parts.Length > 4 && bool.TryParse(parts[4], out bool done) ? done : false,
-                        //Status
+                        DateCreated = DateTime.TryParse(parts[2], out var created) ? created : DateTime.Now,
+                        Deadline = DateTime.TryParse(parts[3], out var deadline) ? deadline : DateTime.Now,
+                        IsCompleted = parts[4].Trim().ToLower() == "yes" ? true : false
+
                     });
                 }
-                else
+
+            }
+            Console.WriteLine($"Tasks loaded: {tasks.Count}");
+        }
+
+        /*------------------- UpdateTask Method------------I*/
+        public static void UpdateTask()
+        {
+            //LoadFromFile();
+            Console.WriteLine("=== UPDATE TASK ===");
+            string? nameToUpdate;
+            string? newTaskName;
+            string? newDescription;
+            string? newDeadline;
+            DateTime parsedDeadline;
+
+            //task name to search for
+            do
+            {
+                Console.Write("Enter name of task to update: ");
+                nameToUpdate = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(nameToUpdate) || nameToUpdate.Any(Char.IsDigit) || nameToUpdate.Any(Char.IsSymbol))
                 {
-                    Console.WriteLine($" Skipping malformed line: {line}");
+                    Console.WriteLine("Name cannot be empty and should be pure text");
                 }
             }
-
-
-            Console.WriteLine(" Tasks loaded successfully.");
-        }
-/* ----------------------------------------------------Load From File Ends----------------------------------------------*/      
+            while (string.IsNullOrWhiteSpace(nameToUpdate) || nameToUpdate.Any(Char.IsDigit) || nameToUpdate.Any(Char.IsSymbol));
 
 
 
-/* ----------------------------------------------------Update Task----------------------------------------------*/      
-private static void UpdateTask()
-{
-    Console.Clear();
-    Console.Write("Enter the name of Task you want to search for: ");
-    string? searchName = Console.ReadLine()?.Trim();
-
-    if (string.IsNullOrWhiteSpace(searchName) || searchName.Length < 1)
-    {
-        Console.WriteLine("Enter a valid search name");
-    }
-
-    var taskFound = tasks.Where(p => p.Name != null && p.Name.Contains(searchName, StringComparison.OrdinalIgnoreCase)).ToList();
-    Console.WriteLine($"task found just to see it in updatetask: {taskFound.Count} results");//(needs to be deleted)
-    if (taskFound.Count > 0)
-    {
-        Console.WriteLine("\nSearch Results:\n");
-
-        int counter = 1;
-        foreach (var task in taskFound)
-        {
-            Console.WriteLine($"{counter++}. Name: {task.Name}");
-            Console.WriteLine($"   Description: {task.Description}");
-            Console.WriteLine($"   Created: {task.CreatedDate:yyyy-MM-dd}");
-            Console.WriteLine($"   Due: {task.DueDate:yyyy-MM-dd}");
-            Console.WriteLine($"   Status: {(task.IsCompleted ? "[x] Completed" : "[ ] Pending")}\n");
-        }
-
-         Console.Write("Enter the number of the task you want to update: ");
-         if (int.TryParse(Console.ReadLine(), out int choice) && choice >= 1 && choice <= taskFound.Count)
-         {
-             var selectedTask = taskFound[choice - 1];
-
-             Console.Write($"\nNew name (or press Enter to keep '{selectedTask.Name}'): ");
-             string newName = Console.ReadLine();
-             if (!string.IsNullOrWhiteSpace(newName)) selectedTask.Name = newName;
-
-             Console.Write("New description (or press Enter to keep current): ");
-             string newDesc = Console.ReadLine();
-             if (!string.IsNullOrWhiteSpace(newDesc)) selectedTask.Description = newDesc;
-
-             Console.Write("New due date (yyyy-MM-dd) or press Enter to keep: ");
-             string newDue = Console.ReadLine();
-             if (DateTime.TryParse(newDue, out DateTime newDate)) selectedTask.DueDate = newDate;
-
-             WriteToFile();
-             Console.WriteLine("\n Task updated successfully!");
-         }
-         else
-         {
-             Console.WriteLine("Invalid selection.");
-         }
-    }
-    else
-    {
-        Console.WriteLine("No task found matching that name.");
-    }
-}
-
-/*---------------------------------------------------Change Task Status ---------------------------------------*/
-    private static void ChangeTaskStatus(){
-    Console.Clear();
-    Console.Write("Enter the name of the Task: ");
-    string? searchName = Console.ReadLine()?.Trim();
-
-    if (string.IsNullOrWhiteSpace(searchName) || searchName.Length < 1)
-    {
-        Console.WriteLine("Enter a valid search name");
-    }
-
-        var taskFound = tasks.Where(p => p.Name != null && p.Name.Contains(searchName, StringComparison.OrdinalIgnoreCase)).ToList();
-        Console.WriteLine($"the task found list: {taskFound.Count} results");//just to see the list(need to be removed)
-        if (taskFound.Count > 0)
-        {
-            Console.WriteLine("\nSearch Results:\n");
-
-            int counter = 1;
-            foreach (var task in taskFound)
+            // new name the user want to set
+            do
             {
-                Console.WriteLine($"{counter++}. Name: {task.Name}");
-                Console.WriteLine($"   Description: {task.Description}");
-                Console.WriteLine($"   Created: {task.CreatedDate:yyyy-MM-dd}");
-                Console.WriteLine($"   Due: {task.DueDate:yyyy-MM-dd}");
-                Console.WriteLine($"   Status: {(task.IsCompleted ? "[x] Completed" : "[ ] Pending")}\n");
-            }
+                Console.Write("Enter the new task name or press Enter to retain the current name: ");
+                newTaskName = Console.ReadLine();
 
-            Console.Write("Enter the serial number of the task you want to Change its status: ");
-            if (int.TryParse(Console.ReadLine(), out int choice) && choice >= 1 && choice <= taskFound.Count)
-            {
-                var selectedTask = taskFound[choice - 1];
 
-                Console.WriteLine("\nPress [Spacebar] to toggle completion status.");
-                Console.WriteLine("Or press [Enter] to leave it unchanged.");
-                ConsoleKeyInfo key = Console.ReadKey(true);
-                if (key.Key == ConsoleKey.Spacebar)
+                if (string.IsNullOrWhiteSpace(newTaskName)) break;
+
+                if (newTaskName.Any(Char.IsDigit) || newTaskName.Any(Char.IsSymbol))
                 {
-                    selectedTask.IsCompleted = !selectedTask.IsCompleted;
-                    Console.WriteLine($"\nStatus updated: {(selectedTask.IsCompleted ? "[x] Completed" : "[ ] Pending")}");
+                    Console.WriteLine("Name should not contain digits or symbols.");
+                    newTaskName = null;
                 }
-                WriteToFile();
-                Console.WriteLine("Task Status updated Successfully");
+
+            } while (newTaskName == null);
+
+
+            //description update
+            do
+            {
+                Console.Write("Enter description of task or press Enter to retain the current descripton: ");
+                newDescription = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(newDescription)) break;
+                if (newDescription.Length < 10 || newDescription.Any(Char.IsDigit) || newDescription.Any(Char.IsSymbol))
+                {
+                    Console.WriteLine("Min of 10 characters and description should be text");
+                }
+            } while (newDescription.Length < 10 || newDescription.Any(Char.IsDigit) || newDescription.Any(Char.IsSymbol));
+
+            //deadline update
+            do
+            {
+                Console.Write("Enter new deadline (YYYY-MM-DD) or press Enter to retain the current deadline:: ");
+                newDeadline = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(newDeadline)) break;
+            } while (!DateTime.TryParse(newDeadline, out parsedDeadline) || parsedDeadline < DateTime.Today);
+
+
+            //storing the value
+            var task = tasks.FirstOrDefault(t => t.Name.Equals(nameToUpdate, StringComparison.OrdinalIgnoreCase));
+            if (task != null)
+            {
+                task.Name = string.IsNullOrEmpty(newTaskName) ? task.Name : newTaskName;
+                task.Description = string.IsNullOrEmpty(newDescription) ? task.Description : newDescription;
+                if (!string.IsNullOrEmpty(newDeadline) && DateTime.TryParse(newDeadline, out parsedDeadline) && parsedDeadline >= DateTime.Today)
+                {
+                    task.Deadline = parsedDeadline;
+                }
+
+                SaveTask(tasks);
+                Console.WriteLine("Task updated successfully");
+                Console.WriteLine("The updated record is: ");
+                Console.WriteLine($"Task Name: {task.Name},\nDeadline: {task.Deadline:yyyy-MM-dd}, \nCompleted: {(task.IsCompleted ? "Yes" : "No")}");
             }
-            else{
-                Console.WriteLine("Task not updated successfully");
+            else
+            {
+                Console.WriteLine("Task not found");
             }
+            Console.WriteLine("Task updated successfully");
+            GoBackToMenu();
         }
-        else{
-            Console.WriteLine("No Task Found ");
+        /*------------------- UpdateTask Ends------------I*/
+
+
+
+
+
+
+        /*------------------- ViewPending Task Methos------------I*/
+
+        public static void ViewPendingTask()
+        {
+            Console.WriteLine("=== VIEW PENDING TASK ===");
+
+            var pendingTask = tasks.Where(t => !t.IsCompleted).OrderBy(t => t.Deadline);
+
+            if (!pendingTask.Any())
+            {
+                Console.WriteLine("No avaialble pending task");
+                GoBackToMenu();
+                return;
+            }
+            else
+            {
+                Console.WriteLine($"{"NAME",-22} | {"DESCRIPTION",-37} | {"CREATED DATE",-15} | {"DUE DATE",-15} | {"COMPLETED",-12}");
+                Console.WriteLine(new string('-', 110));
+                foreach (var task in pendingTask)
+                {
+                    Console.WriteLine($"{task.Name,-22} | {task.Description,-37} | {task.DateCreated,-15:yyyy-MM-dd} | {task.Deadline,-15} | {(task.IsCompleted ? "Yes" : "No"),-12}");
+                }
+            }
+            GoBackToMenu();
+
+        }
+        /*------------------- UpdateTask Ends------------I*/
+
+
+
+
+        /*------------------- ViewPending Task Methos------------I*/
+
+        public static void ViewCompletedTask()
+        {
+            Console.WriteLine("=== VIEW COMPLETED TASK ===");
+
+            var completedTask = tasks.Where(t => t.IsCompleted).OrderBy(t => t.Deadline);
+
+            if (!completedTask.Any())
+            {
+                Console.WriteLine("No completed task");
+                GoBackToMenu();
+                return;
+            }
+            else
+            {
+                Console.WriteLine($"{"NAME",-22} | {"DESCRIPTION",-37} | {"CREATED DATE",-15} | {"DUE DATE",-15} | {"COMPLETED",-12}");
+                Console.WriteLine(new string('-', 110));
+                foreach (var task in completedTask)
+                {
+                    Console.WriteLine($"{task.Name,-22} | {task.Description,-37} | {task.DateCreated,-15:yyyy-MM-dd} | {task.Deadline,-15} | {(task.IsCompleted ? "Yes" : "No"),-12}");
+                }
+            }
+            GoBackToMenu();
+
+        }
+        /*------------------- UpdateTask Ends------------I*/
+
+
+
+
+        /*------------------- ChangeTaskStatus------------I*/
+        public static void ChangeTaskStatus()
+        {
+            Console.WriteLine("=== MARK TASK AS COMPLETED ===");
+
+            Console.Write("Enter the name of the task to change status : ");
+            string? name = Console.ReadLine();
+
+            var task = tasks.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+            if (task != null)
+            {
+                task.IsCompleted = !task.IsCompleted;
+
+                SaveTask(tasks);
+
+                Console.WriteLine($"Task '{task.Name}' has been {(task.IsCompleted ? "marked as completed" : "marked as pending ")}.");
+            }
+            else
+            {
+                Console.WriteLine("Task not found.");
+                GoBackToMenu();
+            }
+
+            Console.WriteLine("Status changed successfully");
+            GoBackToMenu();
+
+        }
+        /*------------------- Change Task Status Ends------------I*/
+
+
+        public static void GoBackToMenu()
+        {
+            Console.WriteLine("Press enter to return to main menu");
+            Console.ReadLine();
         }
 
-
-
-        //    private static string ToggleCheckBox(Task task)
-        //     {
-        //         ConsoleKeyInfo key = Console.ReadKey(true);
-        //         if (key.Key == ConsoleKey.Spacebar)
-        //         {
-        //             task.IsCompleted = !task.IsCompleted;
-        //         }
-        //         return task.IsCompleted ? "[x]" : "[ ]";
-        //     }
     }
-}
+
+  
+    
+    
 }
 

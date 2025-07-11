@@ -1,8 +1,8 @@
 NAME                  |DESCRIPTION                          |CREATED DATE   |DUE DATE       |COMPLETED   
 --------------------------------------------------------------------------------------------------------------
-NAME                  |DESCRIPTION                          |2025-07-05     |2025-07-05,-15|Pending     
-NAME                  |DESCRIPTION                          |2025-07-04     |2025-07-05,-15|Pending     
-NAME                  |DESCRIPTION                          |2025-07-04     |2025-07-05,-15|Pending     
-Cooking               |Cooking plaintain                    |2025-07-04     |2025-07-05,-15|Pending     
-aaaaaaaaa             |asdfadffsfaffasf                     |2025-07-04     |2025-07-05,-15|Completed   
-a                     |wlfsjflf                             |2025-07-04     |2025-07-05,-15|Pending     
+NAME                  |DESCRIPTION                          |2025-07-11, -15|2025-07-11, -15|No           
+NAME                  |DESCRIPTION                          |2025-07-11, -15|2025-07-11, -15|No           
+monkey                |moneky lives in the zoon and jumps...|2025-07-11, -15|2025-07-11, -15|Yes          
+phone                 |phone phone phone                    |2025-07-11, -15|2025-07-11, -15|No           
+mouse                 |mouse is an animal                   |2025-07-11, -15|2025-07-11, -15|Yes          
+spoon                 |spoon that is used for eating        |2025-07-11, -15|2025-07-11, -15|Yes          
