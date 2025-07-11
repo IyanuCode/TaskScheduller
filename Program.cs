@@ -20,7 +20,7 @@ namespace TaskScheduller
 
         public static void Main(string[] args)
         {
-            LoadFromFile(); //i think calling it here once and available to all other method is better for the memory than calling it in each method
+            LoadFromFile(); //calling it here once is preffered for memory management
 
             MainMenu();
         }
